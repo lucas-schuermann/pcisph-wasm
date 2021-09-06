@@ -1,0 +1,29 @@
+[package]
+name = "webgl"
+version = "0.1.0"
+authors = ["Lucas V. Schuermann <lucas@lvs.io>"]
+edition = "2018"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+js-sys = "*"
+wasm-bindgen = "*"
+cgmath = "0.18.0"
+glam = "0.17.3"
+
+[dependencies.web-sys]
+version = "*"
+features = [
+  'Document',
+  'Element',
+  'HtmlCanvasElement',
+  'WebGlBuffer',
+  'WebGl2RenderingContext',
+  'WebGlUniformLocation',
+  'WebGlProgram',
+  'WebGlShader',
+  'Window',
+]
