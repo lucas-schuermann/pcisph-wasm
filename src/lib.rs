@@ -7,15 +7,16 @@
     missing_debug_implementations
 )]
 
-use std::cell::RefCell;
 use std::rc::Rc;
+use std::{cell::RefCell, iter};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader};
 
 pub mod solver;
 
-const DAM_PARTICLES: usize = 1000;
+const DAM_PARTICLES: usize = 75 * 75;
+const MAX_PARTICLES: usize = DAM_PARTICLES;
 const BLOCK_PARTICLES: usize = 500;
 const POINT_SIZE: f32 = 5.0;
 
@@ -79,6 +80,17 @@ pub fn start() -> Result<(), JsValue> {
     context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&buffer));
     context.vertex_attrib_pointer_with_i32(0, 2, WebGl2RenderingContext::FLOAT, false, 0, 0);
     context.enable_vertex_attrib_array(position_attribute_location as u32);
+    // initial state
+    let zeroed = vec![0.0; MAX_PARTICLES * 2];
+    unsafe {
+        let positions_array_buf_view = js_sys::Float32Array::view(&zeroed);
+
+        context.buffer_data_with_array_buffer_view(
+            WebGl2RenderingContext::ARRAY_BUFFER,
+            &positions_array_buf_view,
+            WebGl2RenderingContext::DYNAMIC_DRAW,
+        );
+    }
 
     // TODO: move
     let mut sim = solver::State::new();
@@ -115,10 +127,10 @@ pub fn start() -> Result<(), JsValue> {
         unsafe {
             let positions_array_buf_view = js_sys::Float32Array::view(&vertices);
 
-            context.buffer_data_with_array_buffer_view(
+            context.buffer_sub_data_with_i32_and_array_buffer_view(
                 WebGl2RenderingContext::ARRAY_BUFFER,
-                &positions_array_buf_view,
-                WebGl2RenderingContext::DYNAMIC_DRAW,
+                0,
+                &positions_array_buf_view, //WebGl2RenderingContext::DYNAMIC_DRAW,
             );
         }
 
