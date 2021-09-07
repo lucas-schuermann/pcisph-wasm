@@ -3,7 +3,7 @@
     "scripts": {
         "build": "cross-env RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals' webpack serve --mode production",
         "release": "cross-env RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals' webpack --mode production",
-        "serve": "cross-env RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals' webpack serve --mode development"
+        "serve": "cross-env RUSTUP_TOOLCHAIN=nightly RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals' webpack serve --mode production"
     },
     "devDependencies": {
         "@wasm-tool/wasm-pack-plugin": "1.5.0",
