@@ -7,8 +7,8 @@
     missing_debug_implementations
 )]
 
+use std::cell::RefCell;
 use std::rc::Rc;
-use std::{cell::RefCell, iter};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader};
@@ -16,72 +16,87 @@ use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader};
 pub mod solver;
 
 const DAM_PARTICLES: usize = 75 * 75;
-const MAX_PARTICLES: usize = DAM_PARTICLES;
+const MAX_BLOCKS: usize = 15;
 const BLOCK_PARTICLES: usize = 500;
+const MAX_PARTICLES: usize = DAM_PARTICLES + MAX_BLOCKS * BLOCK_PARTICLES;
 const POINT_SIZE: f32 = 5.0;
 
-#[wasm_bindgen(start)]
-pub fn start() -> Result<(), JsValue> {
-    let context = init_webgl()?;
+#[wasm_bindgen]
+pub struct Simulation {
+    context: WebGl2RenderingContext,
+    state: solver::State,
+}
 
-    let mut sim = solver::State::new();
-    sim.init_dam_break(DAM_PARTICLES);
+impl Drop for Simulation {
+    fn drop(&mut self) {}
+}
 
-    let f = Rc::new(RefCell::new(None));
-    let g = f.clone();
-    *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-        //         if i > 300 {
-        //             // Drop our handle to this closure so that it will get cleaned
-        //             // up once we return.
-        //             let _ = f.borrow_mut().take();
-        //             return;
-        //         }
+#[wasm_bindgen]
+impl Simulation {
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> Result<Simulation, JsValue> {
+        let context = init_webgl()?;
 
-        // update the simulation and draw new particle positions
-        sim.update();
-        let vertices: Vec<f32> = sim
+        let mut state = solver::State::new();
+        state.init_dam_break(DAM_PARTICLES);
+
+        Ok(Simulation { context, state })
+    }
+
+    #[wasm_bindgen]
+    pub fn step(&mut self) {
+        self.state.update();
+        self.draw();
+    }
+
+    #[wasm_bindgen]
+    pub fn block(&mut self) {
+        self.state.init_block(BLOCK_PARTICLES);
+    }
+
+    #[wasm_bindgen]
+    pub fn reset(&mut self) {
+        self.state.particles.clear();
+        self.state.init_dam_break(DAM_PARTICLES);
+    }
+
+    fn draw(&self) {
+        let vertices: Vec<f32> = self
+            .state
             .particles
             .iter()
             .map(|p| p.position().to_array())
             .flatten()
             .collect();
-        draw(&vertices, &context);
 
-        // Schedule ourself for another requestAnimationFrame callback
-        request_animation_frame(f.borrow().as_ref().unwrap());
-    }) as Box<dyn FnMut()>));
+        unsafe {
+            // Note that `Float32Array::view` is somewhat dangerous (hence the
+            // `unsafe`!). This is creating a raw view into our module's
+            // `WebAssembly.Memory` buffer, but if we allocate more pages for ourself
+            // (aka do a memory allocation in Rust) it'll cause the buffer to change,
+            // causing the `Float32Array` to be invalid.
+            //
+            // As a result, after `Float32Array::view` we have to be very careful not to
+            // do any memory allocations before it's dropped.
+            let positions_array_buf_view = js_sys::Float32Array::view(&vertices);
 
-    request_animation_frame(g.borrow().as_ref().unwrap());
+            self.context.buffer_sub_data_with_i32_and_array_buffer_view(
+                WebGl2RenderingContext::ARRAY_BUFFER,
+                0,
+                &positions_array_buf_view, //WebGl2RenderingContext::DYNAMIC_DRAW,
+            );
+        }
 
-    Ok(())
-}
-
-fn draw(vertices: &Vec<f32>, context: &WebGl2RenderingContext) {
-    // Note that `Float32Array::view` is somewhat dangerous (hence the
-    // `unsafe`!). This is creating a raw view into our module's
-    // `WebAssembly.Memory` buffer, but if we allocate more pages for ourself
-    // (aka do a memory allocation in Rust) it'll cause the buffer to change,
-    // causing the `Float32Array` to be invalid.
-    //
-    // As a result, after `Float32Array::view` we have to be very careful not to
-    // do any memory allocations before it's dropped.
-    unsafe {
-        let positions_array_buf_view = js_sys::Float32Array::view(&vertices);
-
-        context.buffer_sub_data_with_i32_and_array_buffer_view(
-            WebGl2RenderingContext::ARRAY_BUFFER,
-            0,
-            &positions_array_buf_view, //WebGl2RenderingContext::DYNAMIC_DRAW,
-        );
+        let vert_count = (vertices.len() / 2) as i32;
+        self.context.clear_color(0.9, 0.9, 0.9, 1.0);
+        self.context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
+        self.context
+            .draw_arrays(WebGl2RenderingContext::POINTS, 0, vert_count);
     }
-
-    let vert_count = (vertices.len() / 2) as i32;
-    context.clear_color(0.9, 0.9, 0.9, 1.0);
-    context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
-    context.draw_arrays(WebGl2RenderingContext::POINTS, 0, vert_count);
 }
 
 fn init_webgl() -> Result<WebGl2RenderingContext, JsValue> {
+    // set up canvas and webgl context handle
     let document = web_sys::window().unwrap().document().unwrap();
     let canvas = document
         .create_element("canvas")?
@@ -158,13 +173,6 @@ fn init_webgl() -> Result<WebGl2RenderingContext, JsValue> {
         );
     }
     Ok(context)
-}
-
-fn request_animation_frame(f: &Closure<dyn FnMut()>) {
-    web_sys::window()
-        .expect("no global `window` exists")
-        .request_animation_frame(f.as_ref().unchecked_ref())
-        .expect("should register `requestAnimationFrame` OK");
 }
 
 fn compile_shader(
