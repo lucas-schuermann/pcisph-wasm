@@ -1,20 +1,16 @@
 import('./pkg')
     .then(rust_module => {
-        let sim = new rust_module.Simulation();
-        console.log(sim);
+        const sim = new rust_module.Simulation();
 
-        const blockBtn = document.getElementById('block');
-        const resetBtn = document.getElementById('reset');
-
-        blockBtn.addEventListener('click', () => {
-            sim.block();
+        document.getElementById('block').addEventListener('click', () => {
+            sim.add_block();
         });
-        resetBtn.addEventListener('click', () => {
+        document.getElementById('reset').addEventListener('click', () => {
             sim.reset();
         });
 
         const step = () => {
-            sim.step();
+            sim.step(); // update and redraw to canvas
             window.requestAnimationFrame(step);
         }
         window.requestAnimationFrame(step);

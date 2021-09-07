@@ -2,15 +2,59 @@
 <html>
 
 <head>
-    <meta http-equiv="Content-Type" content="charset=utf-8" />
+    <title>PCISPH - WASM + WebGL | Lucas V. Schuermann</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <style>
+        body {
+            line-height: 24px;
+            overscroll-behavior: none;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        canvas {
+            display: block;
+            outline: none;
+            border: none;
+        }
+
+        #info {
+            user-select: none;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        a,
+        button,
+        input,
+        select {
+            pointer-events: auto;
+        }
+    </style>
 </head>
 
 <body>
-    <div>
+    <div id="info">
+        <a href="https://lvs.io" target="_blank" rel="noopener">Lucas V. Schuermann</a> - 2D Predictive-Corrective
+        Smoothed Particle Hydrodynamics (SPH) - Rust with WASM + WebGL
+        <br>
+        <a href="https://github.com/cerrno/pcisph-wasm">View code on GitHub</a>
+        <br>
+        This demo was tested on Chrome 93. It should work with any browser that supports WASM and WebGL2.
+    </div>
+    <div style="margin-bottom: 8px;">
+        <p></p>
         <button id="block">Add block</button>
         <button id="reset">Reset</button>
     </div>
-    <!-- Canvas attached at runtime -->
+    <!-- Canvas appended to body at runtime -->
 </body>
 
 </html>

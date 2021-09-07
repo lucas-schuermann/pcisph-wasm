@@ -7,8 +7,6 @@
     missing_debug_implementations
 )]
 
-use std::cell::RefCell;
-use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader};
@@ -50,7 +48,7 @@ impl Simulation {
     }
 
     #[wasm_bindgen]
-    pub fn block(&mut self) {
+    pub fn add_block(&mut self) {
         self.state.init_block(BLOCK_PARTICLES);
     }
 
@@ -104,7 +102,6 @@ fn init_webgl() -> Result<WebGl2RenderingContext, JsValue> {
     document.body().unwrap().append_child(&canvas)?;
     canvas.set_width(solver::WINDOW_WIDTH);
     canvas.set_height(solver::WINDOW_HEIGHT);
-    canvas.style().set_property("border", "solid")?;
 
     let context = canvas
         .get_context("webgl2")?
