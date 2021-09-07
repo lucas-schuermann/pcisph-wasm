@@ -16,16 +16,12 @@ wasm-bindgen-rayon = "1.0.3"
 cgmath = "0.18.0"
 glam = "0.17.3"
 web-sys = {version = "0.3.53", features = [
-  'Document',
-  'Element',
   'HtmlCanvasElement',
-  'Performance',
   'WebGlBuffer',
   'WebGl2RenderingContext',
   'WebGlUniformLocation',
   'WebGlProgram',
   'WebGlShader',
-  'Window',
 ]}
 
 [profile.release]
@@ -33,7 +29,7 @@ lto = "fat"
 panic = "abort"
 codegen-units = 1
 
-# `wasm-opt` is on by default in for the release profile, but it can be
-# disabled by setting it to `false`
+# TODO: look into why enabling _any_ post-compile
+# WASM optimization breaks Rayon initialization
 [package.metadata.wasm-pack.profile.release]
-wasm-opt = false # ['-ol', '0', '-s', '0']
+wasm-opt = false

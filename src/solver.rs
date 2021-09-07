@@ -1,6 +1,7 @@
 use glam::{vec2, vec3, UVec2, Vec2, Vec3};
 use rayon::prelude::*;
 use std::f32::consts::PI;
+// must be included to init rayon thread pool with WASM workers
 pub use wasm_bindgen_rayon::init_thread_pool;
 
 pub const G: Vec2 = glam::const_vec2!([0.0, -9.81]);
@@ -114,10 +115,6 @@ impl State {
     pub fn init_dam_break(&mut self, dam_max_particles: usize) {
         let mut start = vec2(0.25 * VIEW_WIDTH, 0.95 * VIEW_HEIGHT);
         self.place_square(&mut start, dam_max_particles);
-        /*info!(
-            "Initialized dam break with {} particles",
-            self.particles.len()
-        );*/
     }
 
     pub fn init_block(&mut self, block_max_particles: usize) {
@@ -125,12 +122,7 @@ impl State {
             VIEW_WIDTH / 2.0 - VIEW_HEIGHT / 10.0,
             VIEW_HEIGHT - VIEW_HEIGHT / 10.0,
         );
-        let num_placed = self.place_square(&mut start, block_max_particles);
-        /*info!(
-            "Initialized block of {} particles, new total {}",
-            num_placed,
-            self.particles.len()
-        );*/
+        self.place_square(&mut start, block_max_particles);
     }
 
     fn integrate_insert(&mut self) {

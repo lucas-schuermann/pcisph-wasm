@@ -3,8 +3,7 @@
     trivial_casts,
     trivial_numeric_casts,
     unused_extern_crates,
-    rust_2018_idioms,
-    missing_debug_implementations
+    rust_2018_idioms
 )]
 
 use wasm_bindgen::prelude::*;
@@ -25,19 +24,13 @@ pub struct Simulation {
     state: solver::State,
 }
 
-impl Drop for Simulation {
-    fn drop(&mut self) {}
-}
-
 #[wasm_bindgen]
 impl Simulation {
     #[wasm_bindgen(constructor)]
     pub fn new(canvas: &web_sys::HtmlCanvasElement) -> Result<Simulation, JsValue> {
         let context = init_webgl(canvas)?;
-
         let mut state = solver::State::new();
         state.init_dam_break(DAM_PARTICLES);
-
         Ok(Simulation { context, state })
     }
 
@@ -66,7 +59,6 @@ impl Simulation {
             .map(|p| p.position().to_array())
             .flatten()
             .collect();
-
         unsafe {
             // Note that `Float32Array::view` is somewhat dangerous (hence the
             // `unsafe`!). This is creating a raw view into our module's
@@ -81,12 +73,11 @@ impl Simulation {
             self.context.buffer_sub_data_with_i32_and_array_buffer_view(
                 WebGl2RenderingContext::ARRAY_BUFFER,
                 0,
-                &positions_array_buf_view, //WebGl2RenderingContext::DYNAMIC_DRAW,
+                &positions_array_buf_view,
             );
         }
 
         let vert_count = (vertices.len() / 2) as i32;
-        self.context.clear_color(0.9, 0.9, 0.9, 1.0);
         self.context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
         self.context
             .draw_arrays(WebGl2RenderingContext::POINTS, 0, vert_count);
@@ -101,6 +92,8 @@ fn init_webgl(canvas: &web_sys::HtmlCanvasElement) -> Result<WebGl2RenderingCont
         .get_context("webgl2")?
         .unwrap()
         .dyn_into::<WebGl2RenderingContext>()?;
+
+    context.clear_color(0.9, 0.9, 0.9, 1.0);
 
     let vert_shader = compile_shader(
         &context,
@@ -152,7 +145,7 @@ fn init_webgl(canvas: &web_sys::HtmlCanvasElement) -> Result<WebGl2RenderingCont
     context.vertex_attrib_pointer_with_i32(0, 2, WebGl2RenderingContext::FLOAT, false, 0, 0);
     context.enable_vertex_attrib_array(position_attribute_location as u32);
 
-    // allocate buffer initial state
+    // allocate vertex buffer initial state
     let zeroed = vec![0.0; MAX_PARTICLES * 2];
     unsafe {
         let positions_array_buf_view = js_sys::Float32Array::view(&zeroed);
