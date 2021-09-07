@@ -11,12 +11,11 @@ crate-type = ["cdylib"]
 [dependencies]
 js-sys = "0.3.53"
 wasm-bindgen = "0.2.76"
+rayon = "1.5.1"
+wasm-bindgen-rayon = "1.0.3"
 cgmath = "0.18.0"
 glam = "0.17.3"
-
-[dependencies.web-sys]
-web-sys = "0.3.53"
-features = [
+web-sys = {version = "0.3.53", features = [
   'Document',
   'Element',
   'HtmlCanvasElement',
@@ -27,9 +26,14 @@ features = [
   'WebGlProgram',
   'WebGlShader',
   'Window',
-]
+]}
 
 [profile.release]
 lto = "fat"
 panic = "abort"
 codegen-units = 1
+
+# `wasm-opt` is on by default in for the release profile, but it can be
+# disabled by setting it to `false`
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false # ['-ol', '0', '-s', '0']

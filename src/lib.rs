@@ -32,8 +32,8 @@ impl Drop for Simulation {
 #[wasm_bindgen]
 impl Simulation {
     #[wasm_bindgen(constructor)]
-    pub fn new() -> Result<Simulation, JsValue> {
-        let context = init_webgl()?;
+    pub fn new(canvas: &web_sys::HtmlCanvasElement) -> Result<Simulation, JsValue> {
+        let context = init_webgl(canvas)?;
 
         let mut state = solver::State::new();
         state.init_dam_break(DAM_PARTICLES);
@@ -93,16 +93,10 @@ impl Simulation {
     }
 }
 
-fn init_webgl() -> Result<WebGl2RenderingContext, JsValue> {
+fn init_webgl(canvas: &web_sys::HtmlCanvasElement) -> Result<WebGl2RenderingContext, JsValue> {
     // set up canvas and webgl context handle
-    let document = web_sys::window().unwrap().document().unwrap();
-    let canvas = document
-        .create_element("canvas")?
-        .dyn_into::<web_sys::HtmlCanvasElement>()?;
-    document.body().unwrap().append_child(&canvas)?;
     canvas.set_width(solver::WINDOW_WIDTH);
     canvas.set_height(solver::WINDOW_HEIGHT);
-
     let context = canvas
         .get_context("webgl2")?
         .unwrap()

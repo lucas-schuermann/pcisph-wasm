@@ -1,18 +1,19 @@
-import('./pkg')
-    .then(rust_module => {
-        const sim = new rust_module.Simulation();
+import * as Comlink from 'comlink';
 
-        document.getElementById('block').addEventListener('click', () => {
-            sim.add_block();
-        });
-        document.getElementById('reset').addEventListener('click', () => {
-            sim.reset();
-        });
+(async function init() {
+    const handlers = await Comlink.wrap(
+        new Worker(new URL('./wasm-worker.js', import.meta.url), {
+            type: 'module'
+        })
+    ).handlers;
 
-        const step = () => {
-            sim.step(); // update and redraw to canvas
-            window.requestAnimationFrame(step);
-        }
-        window.requestAnimationFrame(step);
-    })
-    .catch(console.error);
+    let offscreen_canvas = document.getElementById('canvas').transferControlToOffscreen();
+    handlers.init(Comlink.transfer(offscreen_canvas, [offscreen_canvas]));
+
+    document.getElementById('block').addEventListener('click', () => {
+        handlers.addBlock();
+    });
+    document.getElementById('reset').addEventListener('click', () => {
+        handlers.reset();
+    });
+})();

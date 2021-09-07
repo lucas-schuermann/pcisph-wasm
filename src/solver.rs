@@ -1,7 +1,7 @@
 use glam::{vec2, vec3, UVec2, Vec2, Vec3};
-//use rayon::prelude::*;
+use rayon::prelude::*;
 use std::f32::consts::PI;
-//pub use wasm_bindgen_rayon::init_thread_pool;
+pub use wasm_bindgen_rayon::init_thread_pool;
 
 pub const G: Vec2 = glam::const_vec2!([0.0, -9.81]);
 pub const WINDOW_WIDTH: u32 = 1280;
@@ -155,8 +155,8 @@ impl State {
         let particles_initial = self.particles.clone();
         let grid = &self.grid;
         self.particles
-            .iter_mut()
-            .zip(self.neighborhoods.iter_mut())
+            .par_iter_mut()
+            .zip(self.neighborhoods.par_iter_mut())
             .for_each(|(pi, ni)| {
                 ni.clear();
                 let mut dens = 0.0;
@@ -195,8 +195,8 @@ impl State {
         let particles_initial = self.particles.clone();
         let bounds = self.boundaries;
         self.particles
-            .iter_mut()
-            .zip(self.neighborhoods.iter_mut())
+            .par_iter_mut()
+            .zip(self.neighborhoods.par_iter_mut())
             .for_each(|(pi, ni)| {
                 // project
                 let mut xproj = pi.x;

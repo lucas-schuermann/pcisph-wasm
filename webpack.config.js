@@ -16,7 +16,7 @@ module.exports = (_, argv) => {
                 template: 'index.html'
             }),
             new WasmPackPlugin({
-                // extraArgs: "-Z build-std=panic_abort,std",
+                extraArgs: "--target web -- -Z build-std=panic_abort,std",
                 crateDirectory: path.resolve(__dirname, ".")
             }),
             // Have this example work in Edge which doesn't ship `TextEncoder` or
@@ -28,6 +28,12 @@ module.exports = (_, argv) => {
         ],
         experiments: {
             asyncWebAssembly: true
+        },
+        devServer: {
+            headers: {
+                'Cross-Origin-Embedder-Policy': 'require-corp',
+                'Cross-Origin-Opener-Policy': 'same-origin',
+            }
         }
     };
     return config;
