@@ -22,9 +22,74 @@ const POINT_SIZE: f32 = 5.0;
 
 #[wasm_bindgen(start)]
 pub fn start() -> Result<(), JsValue> {
+    let context = init_webgl()?;
+
+    let mut sim = solver::State::new();
+    sim.init_dam_break(DAM_PARTICLES);
+
+    let f = Rc::new(RefCell::new(None));
+    let g = f.clone();
+    *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
+        //         if i > 300 {
+        //             // Drop our handle to this closure so that it will get cleaned
+        //             // up once we return.
+        //             let _ = f.borrow_mut().take();
+        //             return;
+        //         }
+
+        // update the simulation and draw new particle positions
+        sim.update();
+        let vertices: Vec<f32> = sim
+            .particles
+            .iter()
+            .map(|p| p.position().to_array())
+            .flatten()
+            .collect();
+        draw(&vertices, &context);
+
+        // Schedule ourself for another requestAnimationFrame callback
+        request_animation_frame(f.borrow().as_ref().unwrap());
+    }) as Box<dyn FnMut()>));
+
+    request_animation_frame(g.borrow().as_ref().unwrap());
+
+    Ok(())
+}
+
+fn draw(vertices: &Vec<f32>, context: &WebGl2RenderingContext) {
+    // Note that `Float32Array::view` is somewhat dangerous (hence the
+    // `unsafe`!). This is creating a raw view into our module's
+    // `WebAssembly.Memory` buffer, but if we allocate more pages for ourself
+    // (aka do a memory allocation in Rust) it'll cause the buffer to change,
+    // causing the `Float32Array` to be invalid.
+    //
+    // As a result, after `Float32Array::view` we have to be very careful not to
+    // do any memory allocations before it's dropped.
+    unsafe {
+        let positions_array_buf_view = js_sys::Float32Array::view(&vertices);
+
+        context.buffer_sub_data_with_i32_and_array_buffer_view(
+            WebGl2RenderingContext::ARRAY_BUFFER,
+            0,
+            &positions_array_buf_view, //WebGl2RenderingContext::DYNAMIC_DRAW,
+        );
+    }
+
+    let vert_count = (vertices.len() / 2) as i32;
+    context.clear_color(0.9, 0.9, 0.9, 1.0);
+    context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
+    context.draw_arrays(WebGl2RenderingContext::POINTS, 0, vert_count);
+}
+
+fn init_webgl() -> Result<WebGl2RenderingContext, JsValue> {
     let document = web_sys::window().unwrap().document().unwrap();
-    let canvas = document.get_element_by_id("canvas").unwrap();
-    let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>()?;
+    let canvas = document
+        .create_element("canvas")?
+        .dyn_into::<web_sys::HtmlCanvasElement>()?;
+    document.body().unwrap().append_child(&canvas)?;
+    canvas.set_width(solver::WINDOW_WIDTH);
+    canvas.set_height(solver::WINDOW_HEIGHT);
+    canvas.style().set_property("border", "solid")?;
 
     let context = canvas
         .get_context("webgl2")?
@@ -80,7 +145,8 @@ pub fn start() -> Result<(), JsValue> {
     context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&buffer));
     context.vertex_attrib_pointer_with_i32(0, 2, WebGl2RenderingContext::FLOAT, false, 0, 0);
     context.enable_vertex_attrib_array(position_attribute_location as u32);
-    // initial state
+
+    // allocate buffer initial state
     let zeroed = vec![0.0; MAX_PARTICLES * 2];
     unsafe {
         let positions_array_buf_view = js_sys::Float32Array::view(&zeroed);
@@ -91,73 +157,12 @@ pub fn start() -> Result<(), JsValue> {
             WebGl2RenderingContext::DYNAMIC_DRAW,
         );
     }
-
-    // TODO: move
-    let mut sim = solver::State::new();
-    sim.init_dam_break(DAM_PARTICLES);
-
-    let f = Rc::new(RefCell::new(None));
-    let g = f.clone();
-
-    *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-        //         if i > 300 {
-        //             body().set_text_content(Some("All done!"));
-        //
-        //             // Drop our handle to this closure so that it will get cleaned
-        //             // up once we return.
-        //             let _ = f.borrow_mut().take();
-        //             return;
-        //         }
-
-        sim.update();
-        let vertices: Vec<f32> = sim
-            .particles
-            .iter()
-            .map(|p| p.position().to_array())
-            .flatten()
-            .collect();
-        // Note that `Float32Array::view` is somewhat dangerous (hence the
-        // `unsafe`!). This is creating a raw view into our module's
-        // `WebAssembly.Memory` buffer, but if we allocate more pages for ourself
-        // (aka do a memory allocation in Rust) it'll cause the buffer to change,
-        // causing the `Float32Array` to be invalid.
-        //
-        // As a result, after `Float32Array::view` we have to be very careful not to
-        // do any memory allocations before it's dropped.
-        unsafe {
-            let positions_array_buf_view = js_sys::Float32Array::view(&vertices);
-
-            context.buffer_sub_data_with_i32_and_array_buffer_view(
-                WebGl2RenderingContext::ARRAY_BUFFER,
-                0,
-                &positions_array_buf_view, //WebGl2RenderingContext::DYNAMIC_DRAW,
-            );
-        }
-
-        let vert_count = (vertices.len() / 2) as i32;
-        draw(&context, vert_count);
-
-        // Schedule ourself for another requestAnimationFrame callback.
-        request_animation_frame(f.borrow().as_ref().unwrap());
-    }) as Box<dyn FnMut()>));
-
-    request_animation_frame(g.borrow().as_ref().unwrap());
-
-    Ok(())
-}
-
-fn draw(context: &WebGl2RenderingContext, vert_count: i32) {
-    context.clear_color(0.0, 0.0, 0.0, 1.0);
-    context.clear(WebGl2RenderingContext::COLOR_BUFFER_BIT);
-    context.draw_arrays(WebGl2RenderingContext::POINTS, 0, vert_count);
-}
-
-fn window() -> web_sys::Window {
-    web_sys::window().expect("no global `window` exists")
+    Ok(context)
 }
 
 fn request_animation_frame(f: &Closure<dyn FnMut()>) {
-    window()
+    web_sys::window()
+        .expect("no global `window` exists")
         .request_animation_frame(f.as_ref().unchecked_ref())
         .expect("should register `requestAnimationFrame` OK");
 }

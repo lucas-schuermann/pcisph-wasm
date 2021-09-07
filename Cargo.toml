@@ -17,6 +17,7 @@ glam = "0.17.3"
 [dependencies.web-sys]
 version = "*"
 features = [
+  'CssStyleDeclaration',
   'Document',
   'Element',
   'HtmlCanvasElement',
@@ -28,13 +29,6 @@ features = [
   'WebGlShader',
   'Window',
 ]
-
-# The `console_error_panic_hook` crate provides better debugging of panics by
-# logging them with `console.error`. This is great for development, but requires
-# all the `std::fmt` and `std::panicking` infrastructure, so it's only enabled
-# in debug mode.
-[target."cfg(debug_assertions)".dependencies]
-console_error_panic_hook = "0.1.5"
 
 [profile.release]
 lto = "fat"
