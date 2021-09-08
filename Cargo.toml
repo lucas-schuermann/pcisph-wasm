@@ -1,5 +1,5 @@
 [package]
-name = "webgl"
+name = "pcisph-wasm"
 version = "0.1.0"
 authors = ["Lucas V. Schuermann <lucas@lvs.io>"]
 edition = "2018"
@@ -29,7 +29,7 @@ lto = "fat"
 panic = "abort"
 codegen-units = 1
 
-# TODO: look into why enabling _any_ post-compile
-# WASM optimization breaks Rayon initialization
+# TODO: look into why enabling _any_ post-compile WASM
+# optimization breaks Rayon initialization at runtime
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false

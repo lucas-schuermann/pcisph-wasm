@@ -6,7 +6,18 @@ Reimplementation of my [previous Rust PCISPH](https://github.com/cerrno/pcisph-r
 For further information, see SPH tutorials on [my website](https://lucasschuermann.com/writing), including an introduction to [SPH math](https://lucasschuermann.com/writing/particle-based-fluid-simulation) and a [simple SPH solver](https://lucasschuermann.com/writing/implementing-sph-in-2d).
 
 ## Usage
-TODO
+Install dependencies
+```
+npm install
+npm install -g wasm-pack
+rustup install nightly
+```
+
+Compile WASM, run webpack, and spawn a local server (note you might need to download additional rust-src, etc. with rustup)
+```
+npm run serve
+```
+Then visit `http://localhost:8080`
 
 ## Demo video
 [![Demo video](http://img.youtube.com/vi/_Kxp5dJ7HM8/0.jpg)](http://www.youtube.com/watch?v=_Kxp5dJ7HM8 "Predictive-Corrective Incompressible SPH")

@@ -163,6 +163,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "pcisph-wasm"
+version = "0.1.0"
+dependencies = [
+ "cgmath",
+ "glam",
+ "js-sys",
+ "rayon",
+ "wasm-bindgen",
+ "wasm-bindgen-rayon",
+ "web-sys",
+]
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -308,17 +321,4 @@ checksum = "224b2f6b67919060055ef1a67807367c2066ed520c3862cc013d26cf893a783c"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "webgl"
-version = "0.1.0"
-dependencies = [
- "cgmath",
- "glam",
- "js-sys",
- "rayon",
- "wasm-bindgen",
- "wasm-bindgen-rayon",
- "web-sys",
 ]
