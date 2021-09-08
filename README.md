@@ -6,11 +6,7 @@ Reimplementation of my [previous Rust PCISPH](https://github.com/cerrno/pcisph-r
 For further information, see SPH tutorials on [my website](https://lucasschuermann.com/writing), including an introduction to [SPH math](https://lucasschuermann.com/writing/particle-based-fluid-simulation) and a [simple SPH solver](https://lucasschuermann.com/writing/implementing-sph-in-2d).
 
 ## Usage
-Run with cargo:
-```
-RUST_LOG=info cargo r --release
-```
-Press `r` to reset simulation or `space` to add a block of particles
+TODO
 
 ## Demo video
 [![Demo video](http://img.youtube.com/vi/_Kxp5dJ7HM8/0.jpg)](http://www.youtube.com/watch?v=_Kxp5dJ7HM8 "Predictive-Corrective Incompressible SPH")
