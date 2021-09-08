@@ -13,7 +13,7 @@ use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader};
 pub mod solver;
 
 const DAM_PARTICLES: usize = 75 * 75;
-const MAX_BLOCKS: usize = 15;
+const MAX_BLOCKS: usize = 50;
 const BLOCK_PARTICLES: usize = 500;
 const MAX_PARTICLES: usize = DAM_PARTICLES + MAX_BLOCKS * BLOCK_PARTICLES;
 const POINT_SIZE: f32 = 5.0;
@@ -35,6 +35,11 @@ impl Simulation {
     }
 
     #[wasm_bindgen]
+    pub fn get_num_particles(&self) -> usize {
+        self.state.particles.len()
+    }
+
+    #[wasm_bindgen]
     pub fn step(&mut self) {
         self.state.update();
         self.draw();
@@ -42,7 +47,9 @@ impl Simulation {
 
     #[wasm_bindgen]
     pub fn add_block(&mut self) {
-        self.state.init_block(BLOCK_PARTICLES);
+        if self.get_num_particles() < MAX_PARTICLES {
+            self.state.init_block(BLOCK_PARTICLES);
+        }
     }
 
     #[wasm_bindgen]

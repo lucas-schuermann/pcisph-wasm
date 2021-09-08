@@ -16,6 +16,7 @@
     },
     "dependencies": {
         "comlink": "^4.3.1",
+        "stats.js": "^0.17.0",
         "wasm-feature-detect": "^1.2.11"
     }
 }

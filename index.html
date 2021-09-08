@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    <div id="info">
+    <div>
         <p><a href="https://lucasschuermann.com" target="_blank" rel="noopener">Lucas V. Schuermann</a> - 2D
             Predictive-Corrective
             Smoothed Particle Hydrodynamics (SPH) - Rust with WASM + WebGL</p>
@@ -17,16 +17,19 @@
                 href="https://caniuse.com/sharedarraybuffer">SharedArrayBuffer</a>),
             <a href="https://caniuse.com/webgl2">WebGL2</a>, and <a
                 href="https://caniuse.com/offscreencanvas">OffscreenCanvas</a>.<br>At the time of writing, these
-            features
-            are supported for ~70% of web users.
+            features are supported for ~70% of web users.
         </p>
     </div>
-    <div style="margin-bottom: 8px;">
-        <p>TODO Simulation metadata</p>
-        <button id="block">Add block</button>
-        <button id="reset">Reset</button>
+    <div>
+        <p>
+            <span id="info">Initializing...</span>
+            <button id="block">Add block</button>
+            <button id="reset">Reset</button>
+        </p>
     </div>
-    <canvas id="canvas" width="800" height="600"></canvas>
+    <div id="stats" style="position: relative">
+        <canvas id="canvas" width="800" height="600"></canvas>
+    </div>
 </body>
 
 </html>
