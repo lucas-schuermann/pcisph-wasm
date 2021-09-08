@@ -47,7 +47,7 @@ impl Simulation {
 
     #[wasm_bindgen]
     pub fn add_block(&mut self) {
-        if self.get_num_particles() < MAX_PARTICLES {
+        if self.get_num_particles() < MAX_PARTICLES - BLOCK_PARTICLES {
             self.state.init_block(BLOCK_PARTICLES);
         }
     }
