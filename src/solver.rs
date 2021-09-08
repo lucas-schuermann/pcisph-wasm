@@ -1,7 +1,7 @@
 use glam::{vec2, vec3, UVec2, Vec2, Vec3};
 use rayon::prelude::*;
 use std::f32::consts::PI;
-// must be included to init rayon thread pool with WASM workers
+// must be included to init rayon thread pool with web workers
 pub use wasm_bindgen_rayon::init_thread_pool;
 
 pub const G: Vec2 = glam::const_vec2!([0.0, -9.81]);

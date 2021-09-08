@@ -3,6 +3,7 @@ import * as Comlink from 'comlink';
 const initHandlers = async () => {
     const rust_wasm = await import('./pkg');
     await rust_wasm.default();
+    // must be included to init rayon thread pool with web workers
     await rust_wasm.initThreadPool(navigator.hardwareConcurrency);
     return Comlink.proxy({
         sim: null,
