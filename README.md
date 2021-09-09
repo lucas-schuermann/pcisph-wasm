@@ -16,7 +16,6 @@ Since Github Pages does not support setting HTTP headers, this project is deploy
 Install dependencies
 ```
 npm install
-npm install -g wasm-pack
 rustup install nightly
 ```
 
