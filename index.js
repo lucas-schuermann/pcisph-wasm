@@ -16,12 +16,12 @@ import * as Stats from 'stats.js';
     }
 
     // create web worker and get handlers for interaction
-    let handlers = await Comlink.wrap(
+    const handlers = await Comlink.wrap(
         new Worker(new URL('./wasm-worker.js', import.meta.url), {
             type: 'module'
         })
     ).handlers;
-    let numThreads = await handlers.numThreads;
+    const numThreads = await handlers.numThreads;
 
     // attach perf stats window
     const stats = new Stats();

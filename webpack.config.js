@@ -30,6 +30,8 @@ module.exports = (_, argv) => {
             asyncWebAssembly: true
         },
         devServer: {
+            // Required in order to use SharedArrayBuffer and performance stats
+            // See https://web.dev/coop-coep/
             headers: {
                 'Cross-Origin-Embedder-Policy': 'require-corp',
                 'Cross-Origin-Opener-Policy': 'same-origin',
