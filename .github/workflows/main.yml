@@ -24,7 +24,7 @@ jobs:
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@4.1.5
         with:
-          branch: gh-pages # The branch the action should deploy to
+          branch: deploy # The branch the action should deploy to
           folder: dist # The folder the action should deploy
           clean-exclude: |
             netlify.toml
