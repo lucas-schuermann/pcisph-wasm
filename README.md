@@ -1,4 +1,6 @@
 # pcisph-wasm
+[![Netlify Status](https://api.netlify.com/api/v1/badges/09a7b67d-f1cb-44e3-b651-ee2dd0fb90ce/deploy-status)](https://app.netlify.com/sites/cerrno-pcisph-wasm/deploys)
+
 2D Predictive-Corrective Smoothed Particle Hydrodynamics (SPH) implementation in Rust with WASM + WebGL
 
 Reimplementation of my [previous Rust PCISPH](https://github.com/cerrno/pcisph-rs) repository now including a WASM thread parallel solver using [rayon-bindgen-wasm](https://github.com/GoogleChromeLabs/wasm-bindgen-rayon)
