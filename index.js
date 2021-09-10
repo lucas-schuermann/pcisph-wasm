@@ -15,36 +15,31 @@ import * as Stats from 'stats.js';
         return;
     }
 
-    // create web worker and get handlers for interaction
+    // create WASM web worker and get handlers for interaction
     const handlers = await Comlink.wrap(
         new Worker(new URL('./wasm-worker.js', import.meta.url), {
             type: 'module'
         })
     ).handlers;
-    const numThreads = await handlers.numThreads;
 
     // attach perf stats window
     const stats = new Stats();
     stats.dom.style.position = 'absolute';
     document.getElementById('stats').appendChild(stats.dom);
 
-    const setInfo = (np) => {
-        const info = document.getElementById('info');
-        info.innerText = `Threads: ${numThreads}, Particles: ${np}\t\t`;
-    }
+    const numThreads = await handlers.numThreads;
+    const setInfo = (numParticles) => document.getElementById('info').innerText = `Threads: ${numThreads}, Particles: ${numParticles}`;
 
-    // start wasm sim+render loop in web worker
-    const offscreen_canvas = document.getElementById('canvas').transferControlToOffscreen();
-    const numParticles = await handlers.init(Comlink.transfer(offscreen_canvas, [offscreen_canvas]), Comlink.proxy(stats));
+    // create offscreen canvas, pass to worker, and start WASM sim+render loop in worker
+    const offscreenCanvas = document.getElementById('canvas').transferControlToOffscreen();
+    const numParticles = await handlers.init(Comlink.transfer(offscreenCanvas, [offscreenCanvas]), Comlink.proxy(stats));
     setInfo(numParticles);
 
     // bind interactivity
     document.getElementById('block').addEventListener('click', async () => {
-        const numParticles = await handlers.addBlock();
-        setInfo(numParticles);
+        setInfo(await handlers.addBlock());
     });
     document.getElementById('reset').addEventListener('click', async () => {
-        const numParticles = await handlers.reset();
-        setInfo(numParticles);
+        setInfo(await handlers.reset());
     });
 })();

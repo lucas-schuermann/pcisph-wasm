@@ -1,6 +1,6 @@
 const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 
 module.exports = (_, argv) => {
@@ -16,21 +16,17 @@ module.exports = (_, argv) => {
                 template: 'index.html'
             }),
             new WasmPackPlugin({
+                // See https://github.com/GoogleChromeLabs/wasm-bindgen-rayon/#readme
+                // Other compilation flags provided in npm scripts, see `package.json`
                 extraArgs: "--target web -- -Z build-std=panic_abort,std",
                 crateDirectory: path.resolve(__dirname, ".")
-            }),
-            // Have this example work in Edge which doesn't ship `TextEncoder` or
-            // `TextDecoder` at this time.
-            new webpack.ProvidePlugin({
-                TextDecoder: ['text-encoding', 'TextDecoder'],
-                TextEncoder: ['text-encoding', 'TextEncoder']
             })
         ],
         experiments: {
             asyncWebAssembly: true
         },
         devServer: {
-            // Required in order to use SharedArrayBuffer and performance stats
+            // Required in order to use SharedArrayBuffer
             // See https://web.dev/coop-coep/
             headers: {
                 'Cross-Origin-Embedder-Policy': 'require-corp',

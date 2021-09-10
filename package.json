@@ -1,6 +1,7 @@
 {
     "private": true,
     "scripts": {
+        // https://github.com/GoogleChromeLabs/wasm-bindgen-rayon/#readme
         "build": "cross-env RUSTUP_TOOLCHAIN=nightly RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals' webpack --mode development",
         "release": "cross-env RUSTUP_TOOLCHAIN=nightly RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals' webpack --mode production",
         "serve-dev": "cross-env RUSTUP_TOOLCHAIN=nightly RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals' webpack serve --mode development",
