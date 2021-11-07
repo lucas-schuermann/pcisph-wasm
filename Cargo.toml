@@ -2,7 +2,7 @@
 name = "pcisph-wasm"
 version = "0.1.0"
 authors = ["Lucas V. Schuermann <lucas@lvs.io>"]
-edition = "2018"
+edition = "2021"
 publish = false
 
 [lib]
@@ -14,15 +14,15 @@ wasm-bindgen = "0.2.76"
 rayon = "1.5.1"
 wasm-bindgen-rayon = "1.0.3"
 cgmath = "0.18.0"
-glam = "0.17.3"
-web-sys = {version = "0.3.53", features = [
+glam = "0.20.0"
+web-sys = { version = "0.3.53", features = [
   'HtmlCanvasElement',
   'WebGlBuffer',
   'WebGl2RenderingContext',
   'WebGlUniformLocation',
   'WebGlProgram',
   'WebGlShader',
-]}
+] }
 
 [profile.release]
 lto = "fat"
