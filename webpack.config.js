@@ -18,7 +18,7 @@ module.exports = (_, argv) => {
             new WasmPackPlugin({
                 // See https://github.com/GoogleChromeLabs/wasm-bindgen-rayon/#readme
                 // Other compilation flags provided in npm scripts, see `package.json`
-                extraArgs: "--target web -- -Z build-std=panic_abort,std",
+                extraArgs: "--target web -- . -Z build-std=panic_abort,std",
                 crateDirectory: path.resolve(__dirname, ".")
             })
         ],
