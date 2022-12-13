@@ -1,0 +1,20 @@
+[package]
+name = "solver"
+version = "0.0.0"
+authors = ["Lucas V. Schuermann <lucas@lvs.io>"]
+edition = "2021"
+publish = false
+
+[dependencies]
+glam = { workspace = true }
+rayon = { workspace = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen-rayon = { workspace = true }
+
+[dev-dependencies]
+criterion = { workspace = true }
+
+[[bench]]
+name = "benchmark"
+harness = false

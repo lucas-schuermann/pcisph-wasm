@@ -1,10 +1,12 @@
+use std::f32::consts::PI;
+
 use glam::{vec2, vec3, UVec2, Vec2, Vec3};
 use rayon::prelude::*;
-use std::f32::consts::PI;
-// must be included to init rayon thread pool with web workers
+
+#[cfg(target_arch = "wasm32")]
 pub use wasm_bindgen_rayon::init_thread_pool;
 
-pub const G: Vec2 = glam::const_vec2!([0.0, -9.81]);
+pub const G: Vec2 = glam::vec2(0.0, -9.81);
 pub const WINDOW_WIDTH: u32 = 1280;
 pub const WINDOW_HEIGHT: u32 = 800;
 pub const VIEW_WIDTH: f32 = 20.0;
@@ -24,7 +26,7 @@ const DT: f32 = (1.0 / 40.0) / SOLVER_STEPS as f32;
 const DT2: f32 = DT * DT;
 const KERN: f32 = 20.0 / (2.0 * PI * H * H);
 const KERN_NORM: f32 = 30.0 / (2.0 * PI * H * H);
-const EPS: f32 = 0.0000001;
+const EPS: f32 = 0.000_000_1;
 const EPS2: f32 = EPS * EPS;
 
 const CELL_SIZE: f32 = H; // set to smoothing radius
@@ -32,32 +34,27 @@ const GRID_WIDTH: usize = (VIEW_WIDTH / CELL_SIZE) as usize;
 const GRID_HEIGHT: usize = (VIEW_HEIGHT / CELL_SIZE) as usize;
 const NUM_CELLS: usize = GRID_WIDTH * GRID_HEIGHT;
 const NUM_NEIGHBORS: usize = 64;
+pub const MAX_PARTICLES: usize = 30_000;
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Particle {
-    x: Vec2,
+    pub x: Vec2,
     xlast: Vec2,
     v: Vec2,
     m: f32,
     p: f32,
     pv: f32,
-    d: f32,
-    dv: f32,
     grid_index: UVec2,
 }
 
 impl Particle {
+    #[must_use]
     pub fn new(x: f32, y: f32) -> Self {
         Self {
             x: Vec2::new(x, y),
             m: 1.0,
-            ..Default::default()
+            ..Particle::default()
         }
-    }
-
-    #[inline(always)]
-    pub fn position(&self) -> Vec2 {
-        self.x
     }
 }
 
@@ -75,35 +72,37 @@ struct Neighbor {
     r: f32,
 }
 
-impl Neighbor {
-    fn new(index: usize, r: f32) -> Self {
-        Neighbor { index, r }
-    }
-}
-
 impl State {
+    #[must_use]
     pub fn new() -> Self {
+        let particles = Vec::with_capacity(MAX_PARTICLES);
         let boundaries = [
             vec3(1.0, 0.0, 0.0),           // left
             vec3(0.0, 1.0, 0.0),           // bottom
             vec3(-1.0, 0.0, -VIEW_WIDTH),  // right
             vec3(0.0, -1.0, -VIEW_HEIGHT), // top
         ];
-        let grid = vec![vec![]; NUM_CELLS];
+        let grid = vec![Vec::with_capacity(NUM_NEIGHBORS); NUM_CELLS];
         Self {
+            particles,
             boundaries,
             grid,
-            ..Default::default()
+            ..State::default()
         }
     }
 
-    fn place_square(&mut self, start: &mut Vec2, max_particles: usize) -> usize {
+    pub fn clear(&mut self) {
+        self.particles.clear();
+        self.neighborhoods.clear();
+    }
+
+    fn place_square(&mut self, start: &mut Vec2, num_particles: usize) -> usize {
         let x0 = start.x;
-        let num = f32::sqrt(max_particles as f32) as usize;
+        let num = f32::sqrt(num_particles as f32) as usize;
         for _ in 0..num {
             for _ in 0..num {
                 self.particles.push(Particle::new(start.x, start.y));
-                self.neighborhoods.push(vec![]);
+                self.neighborhoods.push(Vec::with_capacity(NUM_NEIGHBORS));
                 start.x += 2.0 * PARTICLE_RADIUS + PARTICLE_RADIUS;
             }
             start.x = x0;
@@ -112,22 +111,22 @@ impl State {
         num * num
     }
 
-    pub fn init_dam_break(&mut self, dam_max_particles: usize) {
+    pub fn init_dam_break(&mut self, num_particles: usize) {
         let mut start = vec2(0.25 * VIEW_WIDTH, 0.95 * VIEW_HEIGHT);
-        self.place_square(&mut start, dam_max_particles);
+        self.place_square(&mut start, num_particles);
     }
 
-    pub fn init_block(&mut self, block_max_particles: usize) {
+    pub fn init_block(&mut self, num_particles: usize) {
         let mut start = vec2(
             VIEW_WIDTH / 2.0 - VIEW_HEIGHT / 10.0,
             VIEW_HEIGHT - VIEW_HEIGHT / 10.0,
         );
-        self.place_square(&mut start, block_max_particles);
+        self.place_square(&mut start, num_particles);
     }
 
     fn integrate_insert(&mut self) {
         let grid = &mut self.grid;
-        grid.iter_mut().for_each(|g| g.clear());
+        grid.iter_mut().for_each(std::vec::Vec::clear);
         self.particles.iter_mut().enumerate().for_each(|(i, p)| {
             p.v += G * DT;
             p.xlast = p.x;
@@ -148,7 +147,7 @@ impl State {
         let grid = &self.grid;
         self.particles
             .par_iter_mut()
-            .zip(self.neighborhoods.par_iter_mut())
+            .zip_eq(self.neighborhoods.par_iter_mut())
             .for_each(|(pi, ni)| {
                 ni.clear();
                 let mut dens = 0.0;
@@ -169,17 +168,14 @@ impl State {
                             dens += pj.m * a * a * a * KERN;
                             dens_proj += pj.m * a * a * a * a * KERN_NORM;
                             if ni.len() < NUM_NEIGHBORS {
-                                let neighbor = Neighbor::new(*j, r);
-                                ni.push(neighbor);
+                                ni.push(Neighbor { index: *j, r });
                             }
                         }
                     }
                 }
-                pi.d = dens;
-                pi.dv = dens_proj;
                 pi.p = STIFFNESS * (dens - pi.m * REST_DENS);
                 pi.pv = STIFF_APPROX * dens_proj;
-            })
+            });
     }
 
     fn project_correct(&mut self) {
@@ -188,7 +184,7 @@ impl State {
         let bounds = self.boundaries;
         self.particles
             .par_iter_mut()
-            .zip(self.neighborhoods.par_iter_mut())
+            .zip_eq(self.neighborhoods.par_iter_mut())
             .for_each(|(pi, ni)| {
                 // project
                 let mut xproj = pi.x;
