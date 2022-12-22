@@ -58,7 +58,7 @@ fn main() -> Result<(), String> {
     let indices = index::NoIndices(index::PrimitiveType::Points);
 
     // preallocate vertex buffer
-    let empty_buffer = vec![Vec2::ZERO; MAX_PARTICLES];
+    let mut vertex_data = vec![Vec2::ZERO; MAX_PARTICLES];
     let bindings: VertexFormat = Cow::Owned(vec![(
         Cow::Borrowed("position"),
         0,
@@ -69,7 +69,7 @@ fn main() -> Result<(), String> {
     let vertex_buffer = unsafe {
         glium::VertexBuffer::new_raw_dynamic(
             &display,
-            &empty_buffer,
+            &vertex_data,
             bindings,
             2 * std::mem::size_of::<f32>(),
         )
@@ -99,7 +99,6 @@ fn main() -> Result<(), String> {
                 } => match (virtual_code, state) {
                     (VirtualKeyCode::R, ElementState::Pressed) => {
                         vertex_buffer.invalidate();
-                        vertex_buffer.write(&vec![Vec2::ZERO; MAX_PARTICLES]);
                         sim.clear();
                         info!("Cleared simulation");
                         sim.init_dam_break(DAM_PARTICLES);
@@ -135,8 +134,12 @@ fn main() -> Result<(), String> {
         sim.update();
 
         // draw
-        let data: Vec<Vec2> = sim.particles.iter().map(|p| p.x).collect();
-        vertex_buffer.slice(0..data.len()).unwrap().write(&data); // safe due to preallocated known length
+        vertex_data.clear();
+        sim.particles.iter().for_each(|p| vertex_data.push(p.x));
+        vertex_buffer
+            .slice(0..vertex_data.len())
+            .unwrap()
+            .write(&vertex_data); // safe due to preallocated known length
 
         let mut target = display.draw();
         target.clear_color(0.9, 0.9, 0.9, 1.0);

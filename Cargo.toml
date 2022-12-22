@@ -33,7 +33,7 @@ rayon = "1.6.1"
 glium = "0.32.1"
 wasm-bindgen-rayon = "1.0.3"
 cgmath = "0.18.0"
-web-sys = { version = "0.3.50", features = [
+web-sys = { version = "0.3.60", features = [
   'HtmlCanvasElement',
   'WebGlBuffer',
   'WebGl2RenderingContext',

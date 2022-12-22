@@ -4,11 +4,12 @@ use glam::{vec2, vec3, UVec2, Vec2, Vec3};
 use rayon::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
+// must be included to init rayon thread pool with web workers
 pub use wasm_bindgen_rayon::init_thread_pool;
 
 pub const G: Vec2 = glam::vec2(0.0, -9.81);
-pub const WINDOW_WIDTH: u32 = 1280;
-pub const WINDOW_HEIGHT: u32 = 800;
+pub const WINDOW_WIDTH: u32 = 1024;
+pub const WINDOW_HEIGHT: u32 = 720;
 pub const VIEW_WIDTH: f32 = 20.0;
 pub const VIEW_HEIGHT: f32 = WINDOW_HEIGHT as f32 * VIEW_WIDTH / WINDOW_WIDTH as f32;
 
@@ -53,7 +54,7 @@ impl Particle {
         Self {
             x: Vec2::new(x, y),
             m: 1.0,
-            ..Particle::default()
+            ..Default::default()
         }
     }
 }
@@ -61,6 +62,7 @@ impl Particle {
 #[derive(Debug, Default)]
 pub struct State {
     pub particles: Vec<Particle>,
+    particles_initial: Vec<Particle>,
     boundaries: [Vec3; 4],
     grid: Vec<Vec<usize>>,
     neighborhoods: Vec<Vec<Neighbor>>,
@@ -76,6 +78,7 @@ impl State {
     #[must_use]
     pub fn new() -> Self {
         let particles = Vec::with_capacity(MAX_PARTICLES);
+        let particles_initial = Vec::with_capacity(MAX_PARTICLES);
         let boundaries = [
             vec3(1.0, 0.0, 0.0),           // left
             vec3(0.0, 1.0, 0.0),           // bottom
@@ -85,6 +88,7 @@ impl State {
         let grid = vec![Vec::with_capacity(NUM_NEIGHBORS); NUM_CELLS];
         Self {
             particles,
+            particles_initial,
             boundaries,
             grid,
             ..State::default()
@@ -93,7 +97,14 @@ impl State {
 
     pub fn clear(&mut self) {
         self.particles.clear();
+        self.particles_initial.clear();
         self.neighborhoods.clear();
+    }
+
+    fn place_particle(&mut self, start: &Vec2) {
+        self.particles.push(Particle::new(start.x, start.y));
+        self.particles_initial.push(Particle::default());
+        self.neighborhoods.push(Vec::with_capacity(NUM_NEIGHBORS));
     }
 
     fn place_square(&mut self, start: &mut Vec2, num_particles: usize) -> usize {
@@ -101,8 +112,7 @@ impl State {
         let num = f32::sqrt(num_particles as f32) as usize;
         for _ in 0..num {
             for _ in 0..num {
-                self.particles.push(Particle::new(start.x, start.y));
-                self.neighborhoods.push(Vec::with_capacity(NUM_NEIGHBORS));
+                self.place_particle(start);
                 start.x += 2.0 * PARTICLE_RADIUS + PARTICLE_RADIUS;
             }
             start.x = x0;
@@ -142,8 +152,8 @@ impl State {
     }
 
     fn compute_forces(&mut self) {
-        // TODO can we get around this clone
-        let particles_initial = self.particles.clone();
+        // TODO can we get around this copy
+        self.particles_initial.copy_from_slice(&self.particles);
         let grid = &self.grid;
         self.particles
             .par_iter_mut()
@@ -157,7 +167,7 @@ impl State {
                         ..=(pi.grid_index.y + GRID_WIDTH as u32);
                     for gy in y_range.step_by(GRID_WIDTH) {
                         for j in &grid[(gx + gy) as usize] {
-                            let pj = particles_initial[*j];
+                            let pj = self.particles_initial[*j];
                             let dx = pj.x - pi.x;
                             let r2 = dx.length_squared();
                             if !(EPS2..=H2).contains(&r2) {
@@ -179,8 +189,8 @@ impl State {
     }
 
     fn project_correct(&mut self) {
-        // TODO can we get around this clone
-        let particles_initial = self.particles.clone();
+        // TODO can we get around this copy?
+        self.particles_initial.copy_from_slice(&self.particles);
         let bounds = self.boundaries;
         self.particles
             .par_iter_mut()
@@ -189,7 +199,7 @@ impl State {
                 // project
                 let mut xproj = pi.x;
                 for neighbor in ni {
-                    let pj = particles_initial[neighbor.index];
+                    let pj = self.particles_initial[neighbor.index];
                     let r = neighbor.r;
                     let dx = pj.x - pi.x;
                     let a = 1.0 - r / H;
