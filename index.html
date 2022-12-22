@@ -1,3 +1,38 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><title>2D PCISPH - WASM + WebGL | Lucas V. Schuermann</title><style>#stats {
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="color-scheme" content="dark light"/><title>2D PCISPH - WASM + WebGL | Lucas V. Schuermann</title><style>#container {
             position: relative;
-        }</style><script defer="defer" src="index.js"></script></head><body><div><p><a href="https://lucasschuermann.com" target="_blank" rel="noopener">Lucas V. Schuermann</a> - 2D Predictive-Corrective Smoothed Particle Hydrodynamics (SPH) - Rust with WASM + WebGL</p><p><a href="https://github.com/cerrno/pcisph-wasm">View code on GitHub</a></p><p>This demo was tested on Chrome 93. It should work with any browser that supports WebAssembly threads (<a href="https://caniuse.com/sharedarraybuffer">SharedArrayBuffer</a>),<a href="https://caniuse.com/webgl2">WebGL2</a>, and <a href="https://caniuse.com/offscreencanvas">OffscreenCanvas</a>.<br>At the time of writing, these features are supported for ~70% of web users. A desktop browser is recommended.</p></div><div><p>Threads: <span id="threads">1</span>, Particles: <span id="count">Loading...</span> <button id="block">Add block</button> <button id="reset">Reset</button></p></div><div id="stats"><canvas id="canvas">Browser does not support required features</canvas></div></body></html>
+            width: fit-content;
+        }
+
+        #gui {
+            position: absolute;
+            top: 0;
+            right: 0;
+        }
+
+        /* table used for page header */
+        table.h {
+            margin: 0 0 0 2rem;
+            border-spacing: 0;
+        }
+
+        table.h th {
+            padding: 0;
+            font-weight: normal;
+            text-align: right;
+            vertical-align: baseline;
+        }
+
+        table.h td {
+            padding: 0;
+        }
+
+        /* container */
+        .c {
+            font-family: monospace;
+            word-wrap: break-word;
+            max-width: 65rem;
+        }</style><script defer="defer" src="index.js"></script></head><body><pre>
++-----------------------------------------------------------------------------------------+
+| 2D Predictive-Corrective Smoothed Particle Hydrodynamics (SPH) - Rust with WASM + WebGL |
++-----------------------------------------------------------------------------------------+
+</pre><div class="c"><table class="h"><tr><th>authors:&nbsp;</th><td><a href="https://lucasschuermann.com" target="_blank" rel="noopener">Lucas V. Schuermann</a></td></tr><tr><th>code:&nbsp;</th><td><a href="https://github.com/cerrno/pcisph-wasm">GitHub</a></td></tr><tr><th>published:&nbsp;</th><td>09/06/2021</td></tr><tr><th>updated:&nbsp;</th><td>12/13/2022</td></tr></table><br/><p>This demo was tested on Chrome 107. It should work with any browser that supports WebAssembly threads (<a href="https://caniuse.com/sharedarraybuffer">SharedArrayBuffer</a>), <a href="https://caniuse.com/webgl2">WebGL2</a>, and <a href="https://caniuse.com/offscreencanvas">OffscreenCanvas</a>. At the time of writing, these features are supported for ~77% of web users. A desktop browser is recommended.</p><br/><div id="container"><canvas id="canvas"><pre>Browser does not support required features</pre></canvas><div id="gui"></div></div></div></body></html>
