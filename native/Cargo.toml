@@ -1,0 +1,15 @@
+[package]
+name = "native"
+version = "0.0.0"
+authors = ["Lucas V. Schuermann <lucas@lvs.io>"]
+edition = "2021"
+publish = false
+
+[dependencies]
+cgmath = { workspace = true }
+glium = { workspace = true }
+glam = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
+
+solver = { path = "../solver" }

@@ -9,8 +9,8 @@ const initHandlers = async () => {
     return Comlink.proxy({
         sim: null,
         numThreads: numThreads,
-        init(offscreenCanvas, stats) {
-            this.sim = new rust_wasm.Simulation(offscreenCanvas);
+        init(offscreenCanvas, stats, useDarkMode) {
+            this.sim = new rust_wasm.Simulation(offscreenCanvas, useDarkMode);
             const step = () => {
                 stats.begin(); // collect perf data for stats.js
                 this.sim.step(); // update and redraw to canvas

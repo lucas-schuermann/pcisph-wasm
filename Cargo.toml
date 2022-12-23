@@ -1,21 +1,39 @@
 [package]
 name = "pcisph-wasm"
-version = "0.1.0"
+version = "0.2.0"
+repository = "https://github.com/cerrno/pcisph-wasm"
 authors = ["Lucas V. Schuermann <lucas@lvs.io>"]
 edition = "2021"
+license = "MIT"
+readme = "README.md"
 publish = false
+
+[workspace]
+members = ["native", "solver"]
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
-js-sys = "0.3.53"
-wasm-bindgen = "0.2.76"
-rayon = "1.5.1"
+web-sys = { workspace = true }
+cgmath = { workspace = true }
+js-sys = { workspace = true }
+wasm-bindgen = { workspace = true }
+
+solver = { path = "solver" }
+
+[workspace.dependencies]
+env_logger = "0.10.0"
+log = "0.4.17"
+criterion = "0.4.0"
+js-sys = "0.3.60"
+wasm-bindgen = "0.2.83"
+glam = { version = "0.22.0", features = ["fast-math", "scalar-math"] }
+rayon = "1.6.1"
+glium = "0.32.1"
 wasm-bindgen-rayon = "1.0.3"
 cgmath = "0.18.0"
-glam = "0.20.0"
-web-sys = { version = "0.3.53", features = [
+web-sys = { version = "0.3.60", features = [
   'HtmlCanvasElement',
   'WebGlBuffer',
   'WebGl2RenderingContext',
@@ -27,9 +45,11 @@ web-sys = { version = "0.3.53", features = [
 [profile.release]
 lto = "fat"
 panic = "abort"
+strip = "debuginfo" # strip all 
 codegen-units = 1
+debug = 0           # Set this to 1 or two for more useful backtraces or flamegraphs
 
-# TODO: look into why enabling _any_ post-compile WASM
-# optimization breaks Rayon initialization at runtime
+# As of wasm-opt version 110, -O3 empirically leads to
+# poorer performance
 [package.metadata.wasm-pack.profile.release]
-wasm-opt = false
+wasm-opt = ["-Os"]

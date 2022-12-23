@@ -10,13 +10,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: jetli/wasm-pack-action@v0.3.0
+      - uses: jetli/wasm-pack-action@v0.4.0
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: nightly
           override: true
           components: rust-src
+      - run: sudo apt install -y binaryen
       - name: Build
         run: |
           npm install

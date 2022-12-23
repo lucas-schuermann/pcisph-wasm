@@ -1,21 +1,12 @@
-#![warn(
-    unreachable_pub,
-    trivial_casts,
-    trivial_numeric_casts,
-    unused_extern_crates,
-    rust_2018_idioms
-)]
-
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader};
 
-pub mod solver;
+use solver;
 
 const DAM_PARTICLES: usize = 75 * 75;
-const MAX_BLOCKS: usize = 50;
 const BLOCK_PARTICLES: usize = 500;
-const MAX_PARTICLES: usize = DAM_PARTICLES + MAX_BLOCKS * BLOCK_PARTICLES;
+const MAX_PARTICLES: usize = solver::MAX_PARTICLES;
 const POINT_SIZE: f32 = 5.0;
 
 #[wasm_bindgen]
@@ -27,8 +18,11 @@ pub struct Simulation {
 #[wasm_bindgen]
 impl Simulation {
     #[wasm_bindgen(constructor)]
-    pub fn new(canvas: &web_sys::HtmlCanvasElement) -> Result<Simulation, JsValue> {
-        let context = init_webgl(canvas)?;
+    pub fn new(
+        canvas: &web_sys::HtmlCanvasElement,
+        use_dark_colors: bool,
+    ) -> Result<Simulation, JsValue> {
+        let context = init_webgl(canvas, use_dark_colors)?;
         let mut state = solver::State::new();
         state.init_dam_break(DAM_PARTICLES);
         Ok(Simulation { context, state })
@@ -54,7 +48,7 @@ impl Simulation {
 
     #[wasm_bindgen]
     pub fn reset(&mut self) {
-        self.state.particles.clear();
+        self.state.clear();
         self.state.init_dam_break(DAM_PARTICLES);
     }
 
@@ -63,7 +57,7 @@ impl Simulation {
             .state
             .particles
             .iter()
-            .map(|p| p.position().to_array())
+            .map(|p| p.x.to_array())
             .flatten()
             .collect();
         unsafe {
@@ -91,7 +85,10 @@ impl Simulation {
     }
 }
 
-fn init_webgl(canvas: &web_sys::HtmlCanvasElement) -> Result<WebGl2RenderingContext, JsValue> {
+fn init_webgl(
+    canvas: &web_sys::HtmlCanvasElement,
+    use_dark_colors: bool,
+) -> Result<WebGl2RenderingContext, JsValue> {
     // set up canvas and webgl context handle
     canvas.set_width(solver::WINDOW_WIDTH);
     canvas.set_height(solver::WINDOW_HEIGHT);
@@ -100,7 +97,11 @@ fn init_webgl(canvas: &web_sys::HtmlCanvasElement) -> Result<WebGl2RenderingCont
         .unwrap()
         .dyn_into::<WebGl2RenderingContext>()?;
 
-    context.clear_color(0.9, 0.9, 0.9, 1.0);
+    if use_dark_colors {
+        context.clear_color(0.1, 0.1, 0.1, 1.0);
+    } else {
+        context.clear_color(0.9, 0.9, 0.9, 1.0);
+    }
 
     let vert_shader = compile_shader(
         &context,
