@@ -1,7 +1,7 @@
 import * as Comlink from 'comlink';
 import { threads } from 'wasm-feature-detect';
 import * as Stats from 'stats.js';
-import * as dat from 'dat.gui';
+import GUI from 'lil-gui';
 
 (async () => {
     const $ = (id) => document.getElementById(id);
@@ -31,7 +31,7 @@ import * as dat from 'dat.gui';
     $('container').appendChild(stats.dom);
 
     // attach controls window
-    const gui = new dat.GUI({ autoPlace: false });
+    const gui = new GUI({ autoPlace: false });
     gui.domElement.style.opacity = 0.9;
     let props = {
         threads: await handlers.numThreads,
@@ -43,9 +43,12 @@ import * as dat from 'dat.gui';
             setInfo(await handlers.reset());
         },
     };
-    const setInfo = (numParticles) => props.particles = numParticles;
-    gui.add(props, 'threads');
-    gui.add(props, 'particles').listen();
+    const particlesControl = gui.add(props, 'particles').disable();
+    const setInfo = (numParticles) => {
+        props.particles = numParticles;
+        particlesControl.updateDisplay();
+    };
+    gui.add(props, 'threads').disable();
     gui.add(props, 'block').name("add block");
     gui.add(props, 'reset').name("reset simulation");
     $('gui').appendChild(gui.domElement);
