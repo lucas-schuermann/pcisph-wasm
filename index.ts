@@ -2,16 +2,18 @@ import * as Comlink from 'comlink';
 import { threads } from 'wasm-feature-detect';
 import * as Stats from 'stats.js';
 import GUI from 'lil-gui';
+import { HandlersWrap } from './wasm-worker';
 
 (async () => {
-    const $ = (id) => document.getElementById(id);
+    const $ = (id: string) => document.getElementById(id);
     const useDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const canvas = $('canvas') as HTMLCanvasElement;
 
     // check if required features are supported, else show error and exit
     if (!(await threads()) || !HTMLCanvasElement.prototype.transferControlToOffscreen) {
         const errorString = 'Required features not supported';
         console.error(errorString);
-        const ctx = $('canvas').getContext('2d');
+        const ctx = canvas.getContext('2d');
         ctx.font = '13px monospace';
         ctx.fillStyle = useDarkMode ? 'white' : 'black';
         ctx.fillText(errorString, 0, 20);
@@ -19,8 +21,8 @@ import GUI from 'lil-gui';
     }
 
     // create WASM web worker and get handlers for interaction
-    const handlers = await Comlink.wrap(
-        new Worker(new URL('./wasm-worker.js', import.meta.url), {
+    const handlers = await Comlink.wrap<HandlersWrap>(
+        new Worker(new URL('./wasm-worker.ts', import.meta.url), {
             type: 'module'
         })
     ).handlers;
@@ -32,7 +34,7 @@ import GUI from 'lil-gui';
 
     // attach controls window
     const gui = new GUI({ autoPlace: false });
-    gui.domElement.style.opacity = 0.9;
+    gui.domElement.style.opacity = '0.9';
     let props = {
         threads: await handlers.numThreads,
         particles: 0,
@@ -44,7 +46,7 @@ import GUI from 'lil-gui';
         },
     };
     const particlesControl = gui.add(props, 'particles').disable();
-    const setInfo = (numParticles) => {
+    const setInfo = (numParticles: number) => {
         props.particles = numParticles;
         particlesControl.updateDisplay();
     };
@@ -54,7 +56,7 @@ import GUI from 'lil-gui';
     $('gui').appendChild(gui.domElement);
 
     // create offscreen canvas, pass to worker, and start WASM sim+render loop in worker
-    const offscreenCanvas = $('canvas').transferControlToOffscreen();
+    const offscreenCanvas = canvas.transferControlToOffscreen();
     const numParticles = await handlers.init(Comlink.transfer(offscreenCanvas, [offscreenCanvas]), Comlink.proxy(stats), useDarkMode);
     setInfo(numParticles);
 })();

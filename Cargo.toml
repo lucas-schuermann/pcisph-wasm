@@ -34,7 +34,7 @@ glium = "0.32.1"
 wasm-bindgen-rayon = "1.0.3"
 cgmath = "0.18.0"
 web-sys = { version = "0.3.60", features = [
-  'HtmlCanvasElement',
+  'OffscreenCanvas',
   'WebGlBuffer',
   'WebGl2RenderingContext',
   'WebGlUniformLocation',

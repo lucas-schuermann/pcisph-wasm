@@ -19,7 +19,7 @@ pub struct Simulation {
 impl Simulation {
     #[wasm_bindgen(constructor)]
     pub fn new(
-        canvas: &web_sys::HtmlCanvasElement,
+        canvas: &web_sys::OffscreenCanvas,
         use_dark_colors: bool,
     ) -> Result<Simulation, JsValue> {
         let context = init_webgl(canvas, use_dark_colors)?;
@@ -86,7 +86,7 @@ impl Simulation {
 }
 
 fn init_webgl(
-    canvas: &web_sys::HtmlCanvasElement,
+    canvas: &web_sys::OffscreenCanvas,
     use_dark_colors: bool,
 ) -> Result<WebGl2RenderingContext, JsValue> {
     // set up canvas and webgl context handle
