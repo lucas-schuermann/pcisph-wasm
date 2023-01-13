@@ -1,8 +1,12 @@
+#![allow(
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_truncation
+)]
+
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{WebGl2RenderingContext, WebGlProgram, WebGlShader};
-
-use solver;
 
 const DAM_PARTICLES: usize = 75 * 75;
 const BLOCK_PARTICLES: usize = 500;
@@ -17,6 +21,8 @@ pub struct Simulation {
 
 #[wasm_bindgen]
 impl Simulation {
+    /// # Errors
+    /// Will return `Err` if unable to initialize webgl2 context and compile/link shader programs.
     #[wasm_bindgen(constructor)]
     pub fn new(
         canvas: &web_sys::OffscreenCanvas,
@@ -28,25 +34,23 @@ impl Simulation {
         Ok(Simulation { context, state })
     }
 
-    #[wasm_bindgen]
-    pub fn get_num_particles(&self) -> usize {
+    #[must_use]
+    #[wasm_bindgen(getter)]
+    pub fn num_particles(&self) -> usize {
         self.state.particles.len()
     }
 
-    #[wasm_bindgen]
     pub fn step(&mut self) {
         self.state.update();
         self.draw();
     }
 
-    #[wasm_bindgen]
     pub fn add_block(&mut self) {
-        if self.get_num_particles() < MAX_PARTICLES - BLOCK_PARTICLES {
+        if self.state.particles.len() < MAX_PARTICLES - BLOCK_PARTICLES {
             self.state.init_block(BLOCK_PARTICLES);
         }
     }
 
-    #[wasm_bindgen]
     pub fn reset(&mut self) {
         self.state.clear();
         self.state.init_dam_break(DAM_PARTICLES);
@@ -57,8 +61,7 @@ impl Simulation {
             .state
             .particles
             .iter()
-            .map(|p| p.x.to_array())
-            .flatten()
+            .flat_map(|p| p.x.to_array())
             .collect();
         unsafe {
             // Note that `Float32Array::view` is somewhat dangerous (hence the
@@ -123,13 +126,13 @@ fn init_webgl(
     let frag_shader = compile_shader(
         &context,
         WebGl2RenderingContext::FRAGMENT_SHADER,
-        r##"#version 300 es
+        r#"#version 300 es
         precision highp float;
-        out vec4 outColor;
-        void main() {{
-            outColor = vec4(0.2, 0.6, 1.0, 1.0);
-        }}
-        "##,
+        out vec4 f_color;
+        void main() {
+            f_color = vec4(0.2, 0.6, 1.0, 1.0);
+        }
+        "#,
     )?;
     let program = link_program(&context, &vert_shader, &frag_shader)?;
     context.use_program(Some(&program));

@@ -5,13 +5,12 @@ use glium::{glutin, index, uniform, Surface, VertexFormat};
 use glutin::event::{ElementState, Event, KeyboardInput, StartCause, VirtualKeyCode, WindowEvent};
 use log::info;
 
-use solver;
-
 const DAM_PARTICLES: usize = 75 * 75;
 const BLOCK_PARTICLES: usize = 500;
 const MAX_PARTICLES: usize = solver::MAX_PARTICLES;
 const POINT_SIZE: f32 = 7.5;
 
+#[allow(clippy::too_many_lines)]
 fn main() -> Result<(), String> {
     env_logger::init();
 
@@ -30,7 +29,7 @@ fn main() -> Result<(), String> {
         .with_title("PCISPH");
     let cb = glutin::ContextBuilder::new();
     let display = glium::Display::new(wb, cb, &event_loop)
-        .map_err(|e| format!("Failed to create glium display: {}", e))?;
+        .map_err(|e| format!("Failed to create glium display: {e}"))?;
 
     let vertex_shader_src = r#"
         #version 140
@@ -49,7 +48,7 @@ fn main() -> Result<(), String> {
     "#;
     let program =
         glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None)
-            .map_err(|e| format!("Failed to parse vertex shader source: {}", e))?;
+            .map_err(|e| format!("Failed to parse vertex shader source: {e}"))?;
     let ortho_matrix: [[f32; 4]; 4] =
         cgmath::ortho(0.0, solver::VIEW_WIDTH, 0.0, solver::VIEW_HEIGHT, 0.0, 1.0).into();
     let uniforms = uniform! {
@@ -73,7 +72,7 @@ fn main() -> Result<(), String> {
             bindings,
             2 * std::mem::size_of::<f32>(),
         )
-        .map_err(|e| format!("Failed to create vertex buffer: {}", e))?
+        .map_err(|e| format!("Failed to create vertex buffer: {e}"))?
     };
     let draw_params = glium::DrawParameters {
         polygon_mode: glium::PolygonMode::Point,
@@ -107,8 +106,7 @@ fn main() -> Result<(), String> {
                         if sim.particles.len() + BLOCK_PARTICLES < MAX_PARTICLES {
                             sim.init_block(BLOCK_PARTICLES);
                             info!(
-                                "Initialized block of {} particles, new total {}",
-                                BLOCK_PARTICLES,
+                                "Initialized block of {BLOCK_PARTICLES} particles, new total {}",
                                 sim.particles.len()
                             );
                         } else {
@@ -124,8 +122,7 @@ fn main() -> Result<(), String> {
                 _ => return,
             },
             Event::NewEvents(cause) => match cause {
-                StartCause::Init => (),
-                StartCause::Poll => (),
+                StartCause::Init | StartCause::Poll => (),
                 _ => return,
             },
             _ => return,
@@ -146,7 +143,7 @@ fn main() -> Result<(), String> {
         target
             .draw(
                 vertex_buffer.slice(0..sim.particles.len()).unwrap(),
-                &indices,
+                indices,
                 &program,
                 &uniforms,
                 &draw_params,

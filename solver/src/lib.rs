@@ -1,3 +1,9 @@
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::cast_precision_loss
+)]
+
 use std::f32::consts::PI;
 
 use glam::{vec2, vec3, UVec2, Vec2, Vec3};
@@ -101,7 +107,7 @@ impl State {
         self.neighborhoods.clear();
     }
 
-    fn place_particle(&mut self, start: &Vec2) {
+    fn place_particle(&mut self, start: Vec2) {
         self.particles.push(Particle::new(start.x, start.y));
         self.particles_initial.push(Particle::default());
         self.neighborhoods.push(Vec::with_capacity(NUM_NEIGHBORS));
@@ -112,7 +118,7 @@ impl State {
         let num = f32::sqrt(num_particles as f32) as usize;
         for _ in 0..num {
             for _ in 0..num {
-                self.place_particle(start);
+                self.place_particle(*start);
                 start.x += 2.0 * PARTICLE_RADIUS + PARTICLE_RADIUS;
             }
             start.x = x0;
@@ -134,6 +140,7 @@ impl State {
         self.place_square(&mut start, num_particles);
     }
 
+    #[allow(clippy::similar_names)]
     fn integrate_insert(&mut self) {
         let grid = &mut self.grid;
         grid.iter_mut().for_each(std::vec::Vec::clear);
@@ -234,7 +241,7 @@ impl State {
                         pi.v += (PARTICLE_RADIUS - d) * Vec2::new(b.x, b.y) / DT;
                     }
                 }
-            })
+            });
     }
 
     pub fn update(&mut self) {
