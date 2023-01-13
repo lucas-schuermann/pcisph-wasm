@@ -42,7 +42,6 @@ impl Simulation {
 
     pub fn step(&mut self) {
         self.state.update();
-        self.draw();
     }
 
     pub fn add_block(&mut self) {
@@ -56,7 +55,7 @@ impl Simulation {
         self.state.init_dam_break(DAM_PARTICLES);
     }
 
-    fn draw(&self) {
+    pub fn draw(&self) {
         let vertices: Vec<f32> = self
             .state
             .particles

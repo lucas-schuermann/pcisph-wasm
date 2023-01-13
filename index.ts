@@ -30,6 +30,8 @@ import { HandlersWrap } from './wasm-worker';
     // attach perf stats window
     const stats = new Stats();
     stats.dom.style.position = 'absolute';
+    const simPanel = stats.addPanel(new Stats.Panel('MS (Sim)', '#ff8', '#221'));
+    stats.showPanel(stats.dom.children.length - 1); // ms per sim step
     $('container').appendChild(stats.dom);
 
     // attach controls window
@@ -57,6 +59,6 @@ import { HandlersWrap } from './wasm-worker';
 
     // create offscreen canvas, pass to worker, and start WASM sim+render loop in worker
     const offscreenCanvas = canvas.transferControlToOffscreen();
-    const numParticles = await handlers.init(Comlink.transfer(offscreenCanvas, [offscreenCanvas]), Comlink.proxy(stats), useDarkMode);
+    const numParticles = await handlers.init(Comlink.transfer(offscreenCanvas, [offscreenCanvas]), Comlink.proxy(stats), Comlink.proxy(simPanel), useDarkMode);
     setInfo(numParticles);
 })();

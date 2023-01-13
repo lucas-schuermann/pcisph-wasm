@@ -9,7 +9,7 @@ export type HandlersWrap = {
 export type Handlers = {
     sim: Simulation;
     numThreads: number;
-    init: (offscreenCanvas: OffscreenCanvas, stats: Stats, useDarkMode: boolean) => number;
+    init: (offscreenCanvas: OffscreenCanvas, stats: Stats, simPanel: Stats.Panel, useDarkMode: boolean) => number;
     addBlock: () => number;
     reset: () => number;
 };
@@ -18,16 +18,21 @@ const initHandlers = async (): Promise<Handlers> => {
     const rust_wasm = await import('./pkg');
     await rust_wasm.default();
     const numThreads = navigator.hardwareConcurrency;
+    let maxSimMs = 0;
     // must be included to init rayon thread pool with web workers
     await rust_wasm.initThreadPool(numThreads);
     return Comlink.proxy({
         sim: null,
         numThreads: numThreads,
-        init(offscreenCanvas: OffscreenCanvas, stats: Stats, useDarkMode: boolean) {
+        init(offscreenCanvas: OffscreenCanvas, stats: Stats, simPanel: Stats.Panel, useDarkMode: boolean) {
             this.sim = new rust_wasm.Simulation(offscreenCanvas, useDarkMode);
             const step = () => {
                 stats.begin(); // collect perf data for stats.js
-                this.sim.step(); // update and redraw to canvas
+                let simTimeMs = performance.now();
+                this.sim.step();
+                simTimeMs = performance.now() - simTimeMs;
+                this.sim.draw();
+                simPanel.update(simTimeMs, (maxSimMs = Math.max(maxSimMs, simTimeMs)));
                 stats.end();
                 requestAnimationFrame(step);
             }
