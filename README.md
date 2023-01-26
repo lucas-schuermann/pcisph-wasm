@@ -1,6 +1,6 @@
 ![Build](https://github.com/cerrno/pcisph-wasm/actions/workflows/main.yml/badge.svg) [![Netlify Status](https://api.netlify.com/api/v1/badges/09a7b67d-f1cb-44e3-b651-ee2dd0fb90ce/deploy-status)](https://app.netlify.com/sites/pcisph-wasm/deploys)
 
-`pcisph-wasm` is a 2D Predictive-Corrective Smoothed Particle Hydrodynamics (SPH) implementation in Rust with WASM + WebGL. It implements a parallelived solver using [rayon](https://github.com/rayon-rs/rayon) and [wasm-bindgen-rayon](https://github.com/GoogleChromeLabs/wasm-bindgen-rayon).
+`pcisph-wasm` is a 2D Predictive-Corrective Smoothed Particle Hydrodynamics (SPH) simulation in Rust with WASM + WebGL. It implements a parallelized solver using [rayon](https://github.com/rayon-rs/rayon) and [wasm-bindgen-rayon](https://github.com/GoogleChromeLabs/wasm-bindgen-rayon).
 
 For a quick demo, please see https://pcisph-wasm.netlify.app. The WASM version of this project is deployed to Netlify (since Github Pages does not support setting HTTP headers) after building with Github Actions. Further information can be found on on [my website](https://lucasschuermann.com/writing), including an introduction to [SPH math](https://lucasschuermann.com/writing/particle-based-fluid-simulation) and a [simple SPH solver](https://lucasschuermann.com/writing/implementing-sph-in-2d).
 
