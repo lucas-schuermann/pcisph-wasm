@@ -33,17 +33,17 @@ fn main() -> Result<(), String> {
 
     let vertex_shader_src = r#"
         #version 140
-        uniform mat4 matrix;
-        in vec2 position;
+        uniform mat4 u_matrix;
+        in vec2 in_position;
         void main() {
-            gl_Position = matrix * vec4(position, 0.0, 1.0);
+            gl_Position = u_matrix * vec4(in_position, 0.0, 1.0);
         }
     "#;
     let fragment_shader_src = r#"
         #version 140
-        out vec4 f_color;
+        out vec4 out_color;
         void main() {
-            f_color = vec4(0.2, 0.6, 1.0, 1.0);
+            out_color = vec4(0.2, 0.6, 1.0, 1.0);
         }
     "#;
     let program =
@@ -52,14 +52,14 @@ fn main() -> Result<(), String> {
     let ortho_matrix: [[f32; 4]; 4] =
         cgmath::ortho(0.0, solver::VIEW_WIDTH, 0.0, solver::VIEW_HEIGHT, 0.0, 1.0).into();
     let uniforms = uniform! {
-        matrix: ortho_matrix
+        u_matrix: ortho_matrix
     };
     let indices = index::NoIndices(index::PrimitiveType::Points);
 
     // preallocate vertex buffer
     let mut vertex_data = vec![Vec2::ZERO; MAX_PARTICLES];
     let bindings: VertexFormat = Cow::Owned(vec![(
-        Cow::Borrowed("position"),
+        Cow::Borrowed("in_position"),
         0,
         0,
         glium::vertex::AttributeType::F32F32,

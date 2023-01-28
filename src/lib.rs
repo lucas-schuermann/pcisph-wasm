@@ -110,11 +110,11 @@ fn init_webgl(
         WebGl2RenderingContext::VERTEX_SHADER,
         format!(
             r##"#version 300 es
-        uniform mat4 matrix;
-        in vec2 position;
+        uniform mat4 u_matrix;
+        in vec2 in_position;
         void main() {{
             gl_PointSize = {:.1};
-            gl_Position = matrix * vec4(position, 0.0, 1.0);
+            gl_Position = u_matrix * vec4(in_position, 0.0, 1.0);
         }}
         "##,
             POINT_SIZE
@@ -126,10 +126,10 @@ fn init_webgl(
         &context,
         WebGl2RenderingContext::FRAGMENT_SHADER,
         r#"#version 300 es
-        precision highp float;
-        out vec4 f_color;
+        precision mediump float;
+        out vec4 out_color;
         void main() {
-            f_color = vec4(0.2, 0.6, 1.0, 1.0);
+            out_color = vec4(0.2, 0.6, 1.0, 1.0);
         }
         "#,
     )?;
@@ -138,7 +138,7 @@ fn init_webgl(
 
     // uniforms
     let uniform_location = context
-        .get_uniform_location(&program, "matrix")
+        .get_uniform_location(&program, "u_matrix")
         .expect("Unable to get shader projection matrix uniform location");
     let ortho_matrix = cgmath::ortho(0.0, solver::VIEW_WIDTH, 0.0, solver::VIEW_HEIGHT, 0.0, 1.0);
     let ortho_matrix_flattened_ref: &[f32; 16] = ortho_matrix.as_ref();
@@ -149,7 +149,7 @@ fn init_webgl(
     );
 
     // attributes
-    let position_attribute_location = context.get_attrib_location(&program, "position");
+    let position_attribute_location = context.get_attrib_location(&program, "in_position");
     let buffer = context.create_buffer().ok_or("Failed to create buffer")?;
     context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&buffer));
     context.vertex_attrib_pointer_with_i32(0, 2, WebGl2RenderingContext::FLOAT, false, 0, 0);
