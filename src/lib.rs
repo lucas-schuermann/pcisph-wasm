@@ -149,11 +149,18 @@ fn init_webgl(
     );
 
     // attributes
-    let position_attribute_location = context.get_attrib_location(&program, "in_position");
+    let position_attribute_location = context.get_attrib_location(&program, "in_position") as u32;
     let buffer = context.create_buffer().ok_or("Failed to create buffer")?;
     context.bind_buffer(WebGl2RenderingContext::ARRAY_BUFFER, Some(&buffer));
-    context.vertex_attrib_pointer_with_i32(0, 2, WebGl2RenderingContext::FLOAT, false, 0, 0);
-    context.enable_vertex_attrib_array(position_attribute_location as u32);
+    context.vertex_attrib_pointer_with_i32(
+        position_attribute_location,
+        2,
+        WebGl2RenderingContext::FLOAT,
+        false,
+        0,
+        0,
+    );
+    context.enable_vertex_attrib_array(position_attribute_location);
 
     // allocate vertex buffer initial state
     let zeroed = vec![0.0; MAX_PARTICLES * 2];
